@@ -1,44 +1,60 @@
-"	vim:ff=unix
+"	vim:ff=unix ts=4 ss=4
 "	vim60:fdm=marker
 "	\file		textlink.vim
 "
 "	\brief		Easily load a file and search for a specified string. (handy
 "				for notes in your code, etc.)
 "				Invoke :TL on a line that contains something like, "|~\cvs.html|@|$EDITOR|"
-"				or this... |T|@|" Examples:| ... try it! :TL on this line!
+"				or this... |T|@|Examples:| ... try it! :TL on this line!
 "				You can also :TLS if you do not want to split (S for string)
 "
-"				Otherwise known as a text based hyperlink.
+"				Otherwise known as a text based hyperlink, or plain text
+"				hyperlink (PTH)
 "
 "				This simply :splits the specified file, goes to the
 "				top of said file, and seaches (down) for the specified text.
-"				Ignoring the textlink's search text.
+"				Ignoring the textlink's search text. (Basically)
 "
-"	\author		Robert KellyIV <Feral@FireTop.Com>
-"	\note		Comments and such welcome.
-"	\date		Wed, 31 Jul 2002 14:05 Pacific Daylight Time
-"	Version:	1.32
+"				[Feral:218/02@21:31] currently messes the jumplist up very
+"					well. Soon as I figure out how to fix that I will.
+"
+"	\author		Robert KellyIV <Sreny@SverGbc.Pbz> (Rot13ed)
+"	\note		Comments and such welcome. (They shape the development of
+"					this...)
+"	\date		Tue, 06 Aug 2002 21:31 Pacific Daylight Time
+"	Version:	1.4
 "	\note		Released into the Public Domain.
-"	\version	$Id$
+"	\version	$Id: textlink.vim,v 1.1.1.1 2002/09/13 04:37:13 root Exp $
 "
 "	NOTE! If you like this general idea be sure to check out Stefan Bittner's
 "		http://vim.sourceforge.net/scripts/script.php?script_id=293 thlnk.vim
 "		as well.
 "
-" Index:	Just :TL or :TLS to hop to the entry.. (`` to return if you like)
-"	|T|@|Usage:|
-"	|T|@|ChangeLog:|
-"	|T|@|Commands:|
-"	|T|@|Colors:|
-"	|T|@|Cautions:|
-"	|T|@|Examples:|
-"	|T|@|Examples That Dont Work:|
-"	|T|@|Note:|
-"	|T|@|Redundant Format Explination:|
-"	|T|@|Known Bugs:|
+" Index:	Just :TL or :TLS to hop to the entry.. (^o to return if you like)
+"	||@|Usage:|
+"	||@|ChangeLog:|
+"	||@|Commands:|
+"	||@|Colors:|
+"	||@|Cautions:|
+"	||@|Examples:|
+"	||@|Examples That Dont Work:|
+"	||@|Note:|
+"	||@|Redundant Format Explination:|
+"	||@|Known Bugs:|
 "
 "
 " ChangeLog:
+"	[Feral:241/02@21:25] Fixed one or two typos.
+"	1.4
+"	[Feral:215/02@23:42]
+"	Should now accept absolute or full paths. Also, seems only one expansion
+"		is possible (expand() fails if there are two env vars in FName for
+"		instace)
+"	[Feral:218/02@21:19]
+"	You can now omit the T of for this file, i.e. || is valid and is the same
+"		as |T|.
+" {{{ Previous changes:
+"
 "	1.32
 "	[Feral:212/02@14:04]
 "	Cleaned up the color definitions and modified the help on what to do with
@@ -70,6 +86,7 @@
 "	string we would always end up on the second textlink.
 "	Fixed that by Changed the logic of finding the search string, seems fixed.
 "	(only took 26 min too)
+" }}}
 "
 " Usage:
 "	Sun Jun 16  Pacific Daylight Time 2002 changed the pattern, more
@@ -78,31 +95,34 @@
 "	FileName can be:
 "		|A|
 "			to use AlternateFile (from a.vim) (see below)
-"		|T|
+"		|T| or ||
 "			to use the current (T for this) file., i.e. split and search.
 "
 "		If FileName is not found, a new file is created. i.e. :e FileName
 "
 "
 "	SearchString can be:
-"		Any valid search string I believe, though I am not so sure about
-"		regular expresions come to think of it.. I just seach for normal text.
+"		Any valid search string. Regular expressions are escaped and searched
+"		for litteraly...
 "
-"	Neither FileName nor SearchString are allowed to be blank. basicaly
-"	because a textlink is not so meaning full with out both the filename and
-"	searchstring. ALso makes parsing the textlink a little less percise.
+"	The SearchString is not allowed to be blank. basicaly only because a
+"		textlink is not so meaningfull with out the searchstring.
 "
 " Commands:
 "		:TTL
-"			Test text link. (echos the found FileName and SearchString)
+"			Test text link. (echos the found FileName and SearchString, and
+"			path of the current file.)
 "		:TL
-"			:split FileName, gg, /SearchString (basicaly).
+"			:split FileName, gg, /SearchString (basically).
 "			This is to say splits the current window and loads the specified
-"			file name then searches for the specified SearchString from the
-"			top of the file.
+"				file name then searches for the specified SearchString from the
+"				top of the file.
+"			Effort is made to not match a textlink, and to load the `proper`
+"				file.
 "		:TLF
 "			Like :TL save ignores the SearchString... basicaly a short cut to
-"			:split
+"				:split
+"			Consider ^wf (:h CTRL-W_f)
 "		:TLS
 "			Like :TL save ignores the FileName... usefull when FileName is |T|
 "			(this file) and you do not want to split the window.
@@ -112,6 +132,8 @@
 "			Same as :TLF but :vsplit instead of :split
 "		:VTLS
 "			Same as :TLS but :vsplit instead of :split
+"
+"		I primarily use :TL and :TLS, fyi.
 "
 " Colors:
 " {{{
@@ -132,7 +154,7 @@
 "
 "	4) Add these three lines to the file(s), before comment groups i.e. BEFORE
 "		the line that reads: "syn cluster	cCommentGroup	contains=" for c
-"		files.:
+"		files.: i.e. |$VIM/vimfiles/syntax/c-doxygen.vim|@|syn cluster	cCommentGroup	contains=|
 "			" syntex coloring for textlinks.
 "			source $VIM/vimfiles/syntax/textlink-fragment.vim
 "			"source ~/.vim/syntax/textlink-fragment.vim
@@ -176,7 +198,7 @@
 "	"	\author		Robert KellyIV <Feral@FireTop.Com>
 "	"	\note		Released into the Public Domain Sun Jun 16 2002
 "	"	\date		Wed, 31 Jul 2002 13:53 Pacific Daylight Time
-"	"	\version	$Id$
+"	"	\version	$Id: textlink.vim,v 1.1.1.1 2002/09/13 04:37:13 root Exp $
 "	" =============================================================================
 "	" HOW TO:
 "	"	1) Place this file in your ~/.vim/syntax or $VIM/vimfiles/syntax directory.
@@ -192,9 +214,9 @@
 "	" =============================================================================
 "	
 "	
-"	syn match	feralTextLink			'|\(\f\+\)|@|\(.*\)|' contains=feralTextLinkFNameC,feralTextLinkStringC
-"	syn match	feralTextLinkC			'|\(\f\+\)|@|\(.*\)|' contained contains=feralTextLinkFNameC,feralTextLinkStringC
-"	syn match	feralTextLinkFNameC		'|\(\f\+\)|'hs=s+1,he=e-1 contained
+"	syn match	feralTextLink			'|\(\f*\)|@|\(.*\)|' contains=feralTextLinkFNameC,feralTextLinkStringC
+"	syn match	feralTextLinkC			'|\(\f*\)|@|\(.*\)|' contained contains=feralTextLinkFNameC,feralTextLinkStringC
+"	syn match	feralTextLinkFNameC		'|\(\f*\)|'hs=s+1,he=e-1 contained
 "	syn match	feralTextLinkStringC	'@|\(.*\)|'hs=s+2,he=e-1 contained
 "	
 "	
@@ -275,14 +297,16 @@
 "		Similar to below in that the search string is in this file and BEFORE
 "		this textlink.
 "
-"	// |T|@|" Examples that DON'T work:|
+"	// |T|@|Examples That Dont Work:|
+"	// ||@|Examples That Dont Work:|
 "		Similar to above in that the search string is in this file and AFTER
 "		this textlink.
 "
-"	NOTE: you can use 'T' as the file name to use the existing file,
-"		basicaly just split and search for the string. (!shrug! it was easy to
-"		do.. and quite handy as it turns out.)
+"	NOTE: you can use 'T' as the file name (or you may use a blank file name)
+"		to use the existing file, basicaly just split and search for the
+"		string. (!shrug! it was easy to do.. and quite handy as it turns out.)
 "	// |T|@|Example: #3|
+"	// ||@|Example: #3|
 "
 " Examples That Dont Work:
 "	NOTE: you can use :TTL to echo the found filename and search string, handy
@@ -292,13 +316,14 @@
 "	// |~\cvs.html|@|$EDITOR| blabber |!ALT!|@|if(somenum < 25 && somenum > 15)|
 "	Example: #2	text after the text link that contains a bar '|':
 "	// |~\cvs.html|@|$EDITOR| blabber and this too|
-"	Example: #3	empty filename or search string (kind of pointless ;) )
-"	// ||@|$EDITOR| blabber and this too
-"	// |~\cvs.html|@|| blabber and this too
+"	Example: #3	empty search string (kind of pointless ;) )
+"	// |~\cvs.html|@||
+"	This may be allowed in a future version. and just well, not search for
+"		anything. /shrug
 "	NOTE:
 "	Both of cases #1 and #2 are rather unavoidable, I think, because of the
 "	desire of wanting to allow a logical or '||' in the search string so we
-"	use a gready match. (minimal match would stop at the first '|' ..
+"	use a gready match. (minimal match would stop at the first '|') ..
 "	alternativly use a different seperator char other than bar. Frankly I
 "	didn't find one I liked and I can live with the above limitations.
 "
@@ -319,23 +344,8 @@
 "	The search string is escaped.., althought perhaps not everything that
 "		should be escaped is being escaped.
 "		See: |T|@|_TL_EscapedString_defined_here_|
+"		See: ||@|_TL_EscapedString_defined_here_|
 "	Clutters up the jump list.
-
-" MEW9 feature: {{{ We really don't want exactly like this however
-"	Hyperlink Support 
-"
-"		Automatically parse URLS like http://www.multiedit.com, or 
-"		ftp://, or mailto:, or file:, and identify it as a hyperlink 
-"		by underlining it. 
-"	
-"		Launch URL from within the file. 
-"		
-"		Handles exec: to launch a program, and macro: to run a 
-"		Multi-Edit macro. 
-"		
-"		Supports the following identifiers: ftp, http, gopher, mailto, 
-"		news, nntp, telnet, wais, file, prospero, exec, macro. 
-" }}}
 
 "if exists("loaded_textlink")
 "    finish
@@ -345,16 +355,20 @@
 function! <SID>TestTextLink() " {{{
 	let Line = getline(line("."))
 "	let Pattern = '|\(.\{-}\)|.*|\(.\{-}\)|'
-	let Pattern = '|\(\f\+\)|@|\(.*\)|'
+"	let Pattern = '|\(\f\+\)|@|\(.*\)|'
+	let Pattern = '|\(\f*\)|@|\(.*\)|'
 	let RawLine = matchstr(Line, Pattern)
 	let FName = substitute(RawLine, Pattern, '\1', '')
 	let String = substitute(RawLine, Pattern, '\2', '')
-	echo "FName: '".FName."' String: '".String."'"
+	let FPath = expand("%:p:h")."/"
+"	echo "FName: '".FName."' String: '".String."'"
+	echo "FPath: '".FPath."' FName: '".FName."' String: '".String."'"
 	unlet Line
 	unlet Pattern
 	unlet RawLine
 	unlet FName
 	unlet String
+	unlet FPath
 endfunction
 " }}}
 
@@ -370,7 +384,8 @@ function! <SID>TextLink(...) " {{{
 	let Line = getline(line("."))
 "	let Pattern = '|\(.\{-}\)|.*|\(.\{-}\)|'
 "	let Pattern = '|\(\f\+\)|.*|\(.\{-}\)|'	" old: blaber |FileName| blabber |SearchString| blabber
-	let Pattern = '|\(\f\+\)|@|\(.*\)|'	" New: blabber |FileName|@|SearchString| blabber -- much easier to recognise.
+"	let Pattern = '|\(\f\+\)|@|\(.*\)|'	" New: blabber |FileName|@|SearchString| blabber -- much easier to recognise.
+	let Pattern = '|\(\f*\)|@|\(.*\)|'	" New: blabber |FileName|@|SearchString| blabber -- much easier to recognise.
 	let RawLine = matchstr(Line, Pattern)
 	let FName = substitute(RawLine, Pattern, '\1', '')
 	let String = substitute(RawLine, Pattern, '\2', '')
@@ -380,10 +395,10 @@ function! <SID>TextLink(...) " {{{
 " misc text |fl.vim|@|text to seach| misc text.
 
 	" gate: make sure the params are valid (in this case not empty)
-	if FName == ''
-		echo "TextLink: invalid file name, aborted"
-		return
-	endif
+"	if FName == ''
+"		echo "TextLink: invalid file name, aborted"
+"		return
+"	endif
 	if String == ''
 		echo "TextLink: invalid search string, aborted"
 		return
@@ -392,6 +407,7 @@ function! <SID>TextLink(...) " {{{
 	" escape the search string (search string is litteral)
 	" _TL_EscapedString_defined_here_
 	let EscapedString = escape(String, '\.\~[]')
+
 	" but do not match |searchstring| (i.e. don't match outself)
 "	let NotBaredString = '[^\|]' . EscapedString . '[^\|\n]'
 	let BaredString = '|' . EscapedString . '|'
@@ -414,18 +430,64 @@ function! <SID>TextLink(...) " {{{
 			call AlternateFile(1) " from a.vim by Michael Sharpe <feline@irendi.com> (http://vim.sourceforge.net/scripts/script.php?script_id=31)
 			" TODO can we trap if AlternateFile() is an invalid name and explain
 			" why and what is needed? -- here as a comment I guess.
-		elseif FName == "T"
+		elseif FName == "T" || FName == ''
 			if a:2 == 0
 				execute ":split"
 			else
 				execute ":vsplit"
 			endif
 		else
-			if a:2 == 0
-				execute ":split ".FName
-			else
-				execute ":vsplit ".FName
+			" [Feral:215/02@22:00] So, we only want to use FPath when we do
+			" not have an absolute path...
+"			let FPath = expand("%:p:h")."/"
+"			let FPath = fnamemodify(FName, ":p:gs?\\?/?")
+"			echo "FPath:'".FPath."'"
+"			echo "FName:'".FName."'"
+			let ExpandedFName = expand(FName)
+"			echo "1)ExpandedFName:'".ExpandedFName."'"
+			if ExpandedFName == ''
+				let ExpandedFName = FName
+"				echo "2)ExpandedFName:'".ExpandedFName."'"
+" {{{ Second Expand -- remed.
+"			else
+"				let SecondExpandedFName = expand(ExpandedFName)
+"				echo "-)SecondExpandedFName:'".SecondExpandedFName."'"
+"				if SecondExpandedFName != ''
+"					let ExpandedFName = SecondExpandedFName
+"					echo "3)ExpandedFName:'".ExpandedFName."'"
+"				endif
+"				unlet SecondExpandedFName
+" }}}
 			endif
+			let FPath = fnamemodify(expand("%:p:h")."/".ExpandedFName, ":p:gs?\\?/?") " [Feral:215/02@23:40] if fnamemodify causes problems for you a simple substite should do the trick as well... I think.
+"			echo "FPath:'".FPath."'"
+
+"			echo "ExpandedFName:'".ExpandedFName."'"
+"			echo "FPath:'".FPath."'"
+			if filereadable(FPath)
+"				echo "READABLE: FPath"
+"				return
+				if a:2 == 0
+					execute ":split ".FPath
+				else
+					execute ":vsplit ".FPath
+				endif
+			elseif filereadable(ExpandedFName)
+"				echo "READABLE: ExpandedFName"
+"				return
+				if a:2 == 0
+					execute ":split ".ExpandedFName
+				else
+					execute ":vsplit ".ExpandedFName
+				endif
+			else
+				unlet FPath
+				unlet ExpandedFName
+				echo "TextLink: file not readable, aborted"
+				return
+			endif
+			unlet FPath
+			unlet ExpandedFName
 		endif
 	endif
 
@@ -486,6 +548,8 @@ function! <SID>TextLink(...) " {{{
 " blabber
 " |T|@|" Search for this!:|
 
+" ||@|doesn't exist.|
+
 " {{{ Mark III
 	if(a:1 == 0 || a:1 == 2)
 		" Now, search for the string.
@@ -494,6 +558,8 @@ function! <SID>TextLink(...) " {{{
 		execute "normal gg"
 		" LineWeDoNotWant will be 0 if the bared string was not found.
 		" search for the good string now.
+"		echo "EscapedString:   ".EscapedString
+"		echo "BaredString:     ".BaredString
 		while 1
 			let CurLine = line(".")
 			let LineWeWant = search( EscapedString, 'W' )
