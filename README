@@ -1,0 +1,71 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=347
+
+This is (yet?) another way to implement hypertext styling linking in plain text files (a.k.a. source code).
+
+The notation is extremely simple and easy to type (and comprehend at a glance): |FileName|@|SearchString| (even easier to understand at a glance with highlighting: see the Colors section of textlink.vim for details)
+
+The format of a textlink is | filename to load_fullpath |@| text to search for |
+
+
+Basically this is just :split FileName, gg, /SearchString. (ok very basically). You can omit loading of the file or searching for the SearchString if you like via the provided commands. You may also :vsplit if you like.
+
+
+COMMANDS:
+:TTL
+    Mnemonic: test text link
+    Test text link. (echos the found FileName and SearchString)
+
+:TL
+    Mnemonic: text link
+    :split, :edit FileName, gg, /SearchString (basically). This is to say splits the current window and loads the specified file name then searches for the specified SearchString from the top of the file.
+
+:TLF
+    Mnemonic: text link file
+    Like :TL save ignores the SearchString... basically a short cut to :split and gf
+
+:TLS
+    Mnemonic: text link string (or search)
+    Like :TL save ignores the FileName... useful when FileName is |T|
+    (this file) and you do not want to split the window.
+
+
+:TTL
+    Mnemonic: test text link
+    Test text link. (echos the found FileName and SearchString)
+
+:VTL
+:VTLF
+:VTLS
+    Same as the above commands save :vsplit vs :split.
+
+
+EXAMPLES:
+|T|@|Examples:|
+    This will search for 'Examples:' in this file (T for this). useful with either :TL or :TLS
+
+|A|@|Examples:|
+    This will search for 'Examples:' in the AlternateFile (A for alternate) from a.vim, see NOTE below. ? Wonderful for leaving notes about a function in a header file for instance.
+
+|$VIM/vimfiles/plugin/textlink.vim|@|" Examples:|
+    Environmental variables are expanded in the FileName portion, thanks to VIM :) In fact any(?) valid vim filename will work for FileName, I believe.
+
+See: |~\cvs.html|@|if(somenum < 25 || somenum > 15)|, pretty cool eh?
+    Although there can only be a single TextLink on any given line, it can appear anywhere in that line. (this is due to the greedy matching of the searchstring bars... to allow such a search string as this example..
+
+
+NOTE
+Please see the comments in the file for more information and stuffs.
+
+Also this can (and is setup to) use a.vim by Mike Sharpe (http://vim.sourceforge.net/scripts/script.php?script_id=31)
+
+This works well enough to use everyday (I do) however there are probably a few quirks in it yet. (we all know how that goes ;) )
+
+I hope this is as useful to you as it is to me :)
+
+
+Also of note (text hyperlinking) see  Stefan Bittner's http://vim.sourceforge.net/scripts/script.php?script_id=293
+
+
+Happy VIMing!
+
+Removed buggy/broken versions below, as there was no reason to use them (they were buggy!). I believe 1.32 is (finaly stable, sorry for all the bugs in the first place!)
